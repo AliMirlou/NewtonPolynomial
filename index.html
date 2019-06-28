@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Newton's divided differences interpolation polynomial calculator</title>
+
+	<style>
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 8px;
+		}
+
+		tr:nth-child(odd) {
+			background-color: #dddddd;
+		}
+
+		.row > div:nth-child(2) {
+			position: absolute;
+			left: 30%;
+			top: 58px;
+		}
+	</style>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+
+<h3 style="text-align: center">Newton's divided differences interpolation polynomial calculator</h3>
+
+<div class="row">
+	<div class="col-md-4" style="padding: 15px 23px">
+		Points:
+		<br/>
+		<div id="points-entry"></div>
+		<button class="btn btn-success" onclick="addPoint()">+ Add point</button>
+		<button class="btn btn-danger" onclick="popPoint()">- Remove last point</button>
+	</div>
+
+	<div class="col-md-8" style="padding: 15px 23px">
+		Divided Differences Table:
+		<br/>
+		<table id="newton-table" class="table table-striped table-bordered"></table>
+
+		<div>
+			Interpolation Polynomial:
+			<br/>
+			<p id="interpolation-formula" style="font-family: 'Droid Sans Mono', monospace;"></p>
+		</div>
+	</div>
+</div>
+<script>
+	const points_entry = document.getElementById("points-entry");
+	const newton_table = document.getElementById("newton-table");
+	const interpolation_formula = document.getElementById("interpolation-formula");
+
+	const point_div = document.createElement("div");
+	const point_html = i => `<label>x<sub>${i}</sub>: <input type="number" id="x_${i}" value="${i}" oninput="update()" class="form-control"></label> <label>f(x<sub>${i}</sub>): <input type="number" id="fx_${i}" value="0" oninput="update()" class="form-control"></label>`;
+
+	function get_divided_differences(points) {
+		const n = points.length - 1;
+		if (n === 0) return points[0][1];
+		return (get_divided_differences(points.slice(1, n + 1)) - get_divided_differences(points.slice(0, n))) / (points[n][0] - points[0][0])
+	}
+
+	function create_table(l) {
+		return `<tbody>${l.map(r => `<tr>${r.map(value => `<td>${value}</td>`).join('')}</tr>`).join('')}</tbody>`
+	}
+
+	function create_header(n) {
+		let s = '';
+		if (n !== 0) s += '<th>f[x<sub>i</sub>,x<sub>i+1</sub>]</th>';
+		for (let i = 1; i < n - 1; ++i)
+			s += `<th>f[x<sub>i</sub>,...,x<sub>i+${i + 1}</sub>]</th>`;
+		return '<thead class="thead-light"><tr><th>x<sub>i</sub></th><th>f(x<sub>i</sub>)</th>' + s + '</tr></thead>'
+	}
+
+	function update_table() {
+		const l = get_all_points();
+		for (let j = 0; j < l.length - 1; ++j) {
+			for (let i = 0; i < l.length - j - 1; ++i) {
+				l[i].push(get_divided_differences(l.slice(i, i + j + 2)));
+			}
+		}
+		newton_table.innerHTML = create_header(l.length) + create_table(l);
+	}
+
+	function update_polynomial() {
+		let s = [];
+		const points = get_all_points();
+		const coefs = [...newton_table.children[1].children[0].children].map(node => parseFloat(node.innerText));
+
+		for (let i = 0; i < points.length; ++i) {
+			if (coefs[i + 1] === 0) continue;
+			s.push(coefs[i + 1] + points.slice(0, i).map(p => `(x${((p[0] < 0) ? ('+' + -p[0]) : ('-' + p[0]))})`).join(''));
+		}
+
+		interpolation_formula.innerHTML = 'P<sub>n</sub>(x) = ' + s.join(' + ')
+	}
+
+	function update() {
+		update_table();
+		update_polynomial()
+	}
+
+	function addPoint() {
+		const new_point = point_div.cloneNode(true);
+		new_point.innerHTML = point_html(points_entry.children.length);
+		points_entry.appendChild(new_point);
+		update();
+	}
+
+	function popPoint() {
+		try {
+			points_entry.removeChild(points_entry.children[points_entry.children.length - 1]);
+			update()
+		} catch (e) {}
+	}
+
+	function get_all_points() {
+		return [...points_entry.children].map(create_point)
+	}
+
+	function get_point(i) {
+		const point = points_entry.children[i];
+		return create_point(point)
+	}
+
+	function create_point(node) {
+		return [parseFloat(node.children[0].children[1].value), parseFloat(node.children[1].children[1].value)]
+	}
+</script>
+
+</body>
+</html>
