@@ -4,6 +4,11 @@ This was an academic project for the "Fundamentals of Numerical Algebra" univers
 
 Note: The code is not clean because I was in a rush.
 
+## Live Demo
+
+A live demo is being served on Github Pages:
+https://AliMirlou.github.io/NewtonPolynomial/
+
 ## Usage
 
 ### Prerequisites
@@ -18,6 +23,6 @@ from CDN. So without internet connection, it will just be ugly and non-responsiv
 
 ### Run
 
-The project is a single file (because the professor asked for it), so you only need to open the HTML file.
+The project is a single file (because the professor asked so), so you only need to open the HTML file.
 
-The rest is straightforward. You add your points and it calculates the Newton polynomial.
+The rest is straightforward. You add your points and it calculates the Newton Polynomial.
